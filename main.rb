@@ -1,10 +1,6 @@
-# Download file
-# Load the dictionary and randomly select word between 5 and 12 characters long for secret word
-# display guess count, display correct letters "_ r o g r a _ _ i n g", and incorrect
-
 # Psuedo
-# Put strings in array, array.sample, Display random string 
 # allow case insensitive player input
+# display guess count, display correct letters "_ r o g r a _ _ i n g", and incorrect
 # set guess count = num, subtract 1, end game on loop
 # Set array equal to string.length = _ _ _ _  
 # If letter matches array, fill in the letter
@@ -14,11 +10,38 @@
 # Give player option to save game, serialize game cllass
 # When starting game give player option to load a save game
 
-
-class Hangman
+module Game
+  def introduction
+    puts 'Welcome to Hangman!'
+    puts ' '
+    puts 'The objective of Hangman is to guess a secret word by suggesting letters within a certain number of guesses.'
+    puts ' '
+    puts 'Example:'
+    puts 'Word: hangman'
+    puts 'h a _ g m a _ Incorrect letters: E, D, B, C,'
+    puts ' '
+    puts 'Lets begin!'
+    puts ' '
+  end
 end
 
+class Hangman
+  include Game
 
+  # Variables represent state of game
+  def initialize(computer, player)
+    introduction
+    @computer = computer
+    @player = player
+    @guesses_left = 7
+  end
+
+  def play_game
+    guess = @player.make_guess
+    random_word = @computer.generate_word
+  end
+
+end
 
 class Computer
 
@@ -37,7 +60,20 @@ class Computer
 end
 
 class Player
+  def make_guess
+    loop do
+      make_guess = gets.chomp.downcase.strip.gsub(/[\s,]+/, '')
+      if make_guess.match?(/[a-z]/)
+        break make_guess
+      else 
+        puts "Invalid input, please enter a letter or guess the entire word"
+      end
+    end
+  end
+
 end
 
+player = Player.new
 computer = Computer.new
-computer.generate_word
+start_game = Hangman.new(computer, player)
+start_game.play_game
