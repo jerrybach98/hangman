@@ -1,10 +1,8 @@
 # Psuedo
-# allow case insensitive player input
-# display guess count, display correct letters "_ r o g r a _ _ i n g", and incorrect
-# set guess count = num, subtract 1, end game on loop
-# Set array equal to string.length = _ _ _ _  
 # If letter matches array, fill in the letter
 # Display in new array if incorrect
+# display guess count, display correct letters "_ r o g r a _ _ i n g", and incorrect
+# set guess count = num, subtract 1, end game on loop
 # Win if array matches array
 # Else lose
 # Give player option to save game, serialize game cllass
@@ -20,7 +18,7 @@ module Game
     puts 'Word: hangman'
     puts 'h a _ g m a _ Incorrect letters: E, D, B, C,'
     puts ' '
-    puts 'Lets begin!'
+    puts 'Lets begin! ENTER to start'
     puts ' '
   end
 end
@@ -31,14 +29,28 @@ class Hangman
   # Variables represent state of game
   def initialize(computer, player)
     introduction
-    @computer = computer
+    @start = gets.chomp
     @player = player
+    @computer = computer
     @guesses_left = 7
   end
 
-  def play_game
-    guess = @player.make_guess
-    random_word = @computer.generate_word
+  def load_game
+    
+  end
+
+  def play_game ()
+    p generate_word = @computer.generate_word()
+    convert_word(generate_word)
+    @player.make_guess
+  end
+
+
+  def convert_word (generate_word)
+    puts "Computer generated a word, ENTER your guess (eg. 'a')"
+    word_array = generate_word.split("")
+    p word_array = word_array.map {|element| element = "_"}
+    puts word_array.join(' ')
   end
 
 end
@@ -54,7 +66,7 @@ class Computer
         random_array.push(text_length)
       end
     end
-    p random_array.sample
+    generate_word = random_array.sample
   end
 
 end
@@ -77,3 +89,17 @@ player = Player.new
 computer = Computer.new
 start_game = Hangman.new(computer, player)
 start_game.play_game
+
+
+# debug irb
+
+#def generate_word
+#  generate_word = "telephone"
+#end
+#
+#def convert_word (generate_word)
+#  p generate_word.split("")
+#  p "Computer generated a word, ENTER your guess (eg. 'a')"
+#end
+#
+#convert_word(generate_word)
