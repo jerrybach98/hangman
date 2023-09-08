@@ -2,6 +2,7 @@
 
 # Give player option to save game, serialize game cllass
 # When starting game give player option to load a save game
+# Save game > loop back to: start a new game or load save
 
 module Game
   def introduction
@@ -16,6 +17,33 @@ module Game
     puts 'Lets begin! ENTER to start'
     puts ' '
   end
+
+  def play_again
+    loop do
+      puts 'Play again? Y/N'
+      restart = gets.chomp.downcase
+      if restart == 'n'
+        puts 'Thank you for playing!'
+        exit
+      elsif restart == 'y'
+        break restart
+      end
+    end
+  end
+
+  def restart_game(restart)
+    return unless restart == 'y'
+    @win = false
+    @match = false
+    @guesses_left = 7
+    @word_array = []
+    @blank_array = []
+    @incorrect_array = []
+    @filled_array = []
+    play_game
+
+  end
+
 end
 
 class Hangman
@@ -36,11 +64,8 @@ class Hangman
     @filled_array = []
   end
 
-  def load_game
-    
-  end
-
   def play_game ()
+    # Debug here
     p generate_word = @computer.generate_word()
     convert_word(generate_word)
 
@@ -67,15 +92,22 @@ class Hangman
       puts "Enter another guess:"
       end
     end
+
+    restart = play_again
+    restart_game(restart)
+
   end
 
 
   def convert_word (generate_word)
-    p @word_array = generate_word.split("")
+    # Debug here
+    @word_array = generate_word.split("")
     word_length = @word_array.count
     @blank_array = @word_array.map {|element| element = "_"}
+    puts " "
+    puts "Computer generated a #{word_length} letter word"
     puts "#{@blank_array.join(' ')} | Incorrect letters:"
-    puts "Computer generated a #{word_length} letter word, ENTER your guess (eg. 'a'):"
+    puts "ENTER your guess (eg. 'a'):"
   end
 
   def fill_blank(guess)
@@ -167,8 +199,3 @@ computer = Computer.new
 start_game = Hangman.new(computer, player)
 start_game.play_game
 
-
-# implement counter
-# Loop until guesses_left = 0 or words match
-# Win if array matches array
-# Else lose
