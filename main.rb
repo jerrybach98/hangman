@@ -1,14 +1,5 @@
 # Psuedo
-# Handle full word guesses
-# if word matches display: the word Incorrect guesses, You win!
-# else continue as usual
-# Your word is # letters
 
-# No partial guess "Incorrect its a # letter word"
-# set guess count = num, subtract 1, end game on loop
-# Incorrect guesses remaining
-# Win if array matches array
-# Else lose
 # Give player option to save game, serialize game cllass
 # When starting game give player option to load a save game
 
@@ -36,6 +27,8 @@ class Hangman
     @start = gets.chomp
     @player = player
     @computer = computer
+    @win = false
+    @match = false
     @guesses_left = 7
     @word_array = []
     @blank_array = []
@@ -50,11 +43,30 @@ class Hangman
   def play_game ()
     p generate_word = @computer.generate_word()
     convert_word(generate_word)
-    guess = @player.make_guess
-    fill_blank(guess)
-    match_word(guess)
-    incorrect_guesses = display_incorrect(guess)
-    puts "#{@filled_array} | Incorrect letters: #{incorrect_guesses}"
+
+    loop do
+      guess = @player.make_guess
+      puts "_____________________________________"
+      fill_blank(guess)
+      match_word(guess)
+      incorrect_guesses = display_incorrect(guess)
+      puts "Incorrect guesses remaining: #{@guesses_left}"
+      puts "#{@filled_array} | Incorrect letters: #{incorrect_guesses}"
+      puts "_____________________________________"
+
+      if @guesses_left == 0
+        puts " "
+        puts "You ran out of guesses"
+        break
+      elsif @win == true
+        puts " "
+        puts "You win the game!"
+        break
+      else
+      puts " "
+      puts "Enter another guess:"
+      end
+    end
   end
 
 
@@ -62,9 +74,8 @@ class Hangman
     p @word_array = generate_word.split("")
     word_length = @word_array.count
     @blank_array = @word_array.map {|element| element = "_"}
-    @blank_array.join(' ')
-    puts "#{blank_array} "
-    puts "Computer generated a #{word_length} letter word, ENTER your guess (eg. 'a')"
+    puts "#{@blank_array.join(' ')} | Incorrect letters:"
+    puts "Computer generated a #{word_length} letter word, ENTER your guess (eg. 'a'):"
   end
 
   def fill_blank(guess)
@@ -73,8 +84,19 @@ class Hangman
       @blank_array = @blank_array.each_with_index { |e, i| 
         if positional_match[i]
           @blank_array[i] = guess
+          @match = true
+          if @blank_array == @word_array
+            @win = true
+          end
         end
         } 
+
+      if @match == true
+        puts " "
+        puts "You guessed a letter!"
+      end
+
+      @match = false
       @filled_array = @blank_array.join(' ')
     end
   end
@@ -83,6 +105,9 @@ class Hangman
     if guess.size == 1 
       if @word_array.include?(guess) == false
         @incorrect_array.push(guess)
+        @guesses_left -= 1
+        puts " "
+        puts "You guessed incorrectly"
       end
       @incorrect_array.join(' ')
     end
@@ -93,10 +118,12 @@ class Hangman
       compare_word = guess.split("")
       if compare_word == @word_array
         puts "You guessed the word!"
+        @win = true
         @filled_array = compare_word.join(' ')
       else
-        puts "Incorrect guess"
-        #deincrement turns
+        puts " "
+        puts "You guessed an incorrect word"
+        @guesses_left -= 1
         @filled_array = @blank_array.join(' ')
       end
     end
@@ -123,8 +150,9 @@ end
 class Player
   def make_guess
     loop do
-      guess = gets.chomp.downcase.strip.gsub(/[\s,]+/, '')
-      if guess.match?(/[a-z]/) && guess.size == 1 
+      guess = gets.chomp.downcase.strip.gsub(/[\s,']+/, '')
+      #if guess.match?(/[a-z]/)
+      if guess[/[a-zA-Z]+/] == guess
         break guess
       else 
         puts "Invalid input, please enter a letter or guess the entire word"
@@ -138,3 +166,9 @@ player = Player.new
 computer = Computer.new
 start_game = Hangman.new(computer, player)
 start_game.play_game
+
+
+# implement counter
+# Loop until guesses_left = 0 or words match
+# Win if array matches array
+# Else lose
