@@ -1,21 +1,23 @@
 require 'json'
 
 # Psuedo
+# chose option to load or new 
+# take input of file name > pass file name to load method
 
-# Give player option to save game, serialize game cllass
-# Look at how that data is stored > copy that format for a load game
 
-#defign a save method
-# enter name of file
-# File.open
-#JSON.dump object: :name => @name,
-#
+
+# defign a load method (file_name_input from chomp)
+# json.load file, file location game variiale = JSON.load_file('file_name_input from chomp.json')
+# variables accessible 
+# @Instance variable = variable['name'] or variable_name[0].instance_name
+# 
 
 
 
 # When starting game give player option to load a save game
+# 1 for new game, 2 for load
 # load json
-# Save game > loop back to: start a new game or load save
+# Save game > loop back to: start a new game, end > add load game 
 
 module Game
   def introduction
@@ -28,7 +30,9 @@ module Game
     puts 'h a _ g m a _ Incorrect letters: e, d, b, c,'
     puts ' '
     # Press 1 or 2 to play new game or save game
-    puts 'Lets begin! ENTER to start'
+    puts 'Lets begin!'
+    puts 'ENTER [1] to start new game'
+    puts 'ENTER [2] to load game'
     puts ' '
   end
 
@@ -60,9 +64,10 @@ class Hangman
   def initialize(computer, player)
     introduction
     # implement starting a new game / saving a game with the start instance variable
-    @start = gets.chomp
     @player = player
     @computer = computer
+    @new_game = false
+    @loaded_game = false
     @win = false
     @match = false
     @guesses_left = 7
@@ -72,10 +77,46 @@ class Hangman
     @filled_array = []
   end
 
+  def mode_select()
+    loop do 
+      mode = gets.chomp
+
+      if mode == '1'
+        @new_game = true
+        play_game()
+        break
+      elsif mode == '2'
+        puts " "
+        puts "Saved files:"
+        Dir.children("./saved_games").each { |file| puts file.slice(0..-6)}
+        puts " "
+        puts "Enter the filename you would like to load:"
+        file_name = gets.chomp.strip
+        load_game(file_name)
+        @loaded_game = true
+        play_game()
+        break
+      else
+        puts "Please enter '1' or '2'"
+      end
+    end
+  end
+
   def play_game ()
-    # Debug here
+    if @new_game == true
     p generate_word = @computer.generate_word()
     convert_word(generate_word)
+    @new_game = false
+    elsif @loaded_game == true
+      @loaded_game = false
+      puts "_____________________________________"
+      puts "Game loaded:"
+      puts "Incorrect guesses remaining: #{@guesses_left}"
+      puts "#{@filled_array} | Incorrect letters: #{@incorrect_array.join(' ')}"
+      puts "_____________________________________"
+      puts "Enter another guess or save game:"
+      puts " "
+    end
 
     loop do
       guess = @player.make_guess
@@ -113,10 +154,6 @@ class Hangman
     Dir.mkdir('saved_games') unless Dir.exist?('saved_games')
     File.open("./saved_games/#{file_name}.json", 'w') do |file|
       file.puts(JSON.dump ({
-        :name => @name,
-        :start => @start,
-        :player => @player,
-        :computer => @computer,
         :win => @win,
         :match => @match,
         :guesses_left => @guesses_left,
@@ -129,6 +166,26 @@ class Hangman
     puts "Game saved successfully"
   end
 
+  def load_game(file_name)
+    #add file name not found error
+    file_path = "./saved_games/#{file_name}.json"
+
+    if File.exist?(file_path)
+    json = JSON.load_file("./saved_games/#{file_name}.json")
+    @win = json['win']
+    @match = json['match']
+    @guesses_left = json['guesses_left']
+    @word_array = json['word_array']
+    @blank_array = json['blank_array']
+    @incorrect_array = json['incorrect_array']
+    @filled_array = json['filled_array']
+    else
+      puts "File not found: #{file_path}"
+    end
+  end
+
+  #Private here, can add load game, play game?
+
   def convert_word (generate_word)
     @word_array = generate_word.split("")
     word_length = @word_array.count
@@ -137,6 +194,7 @@ class Hangman
     puts "Computer generated a #{word_length} letter word"
     puts "#{@blank_array.join(' ')} | Incorrect letters:"
     puts "ENTER your guess (eg. 'a') or 'save' to save the game:"
+    puts " "
   end
 
   def fill_blank(guess)
@@ -214,6 +272,7 @@ class Player
   end
   
   def make_guess
+
     loop do
       guess = gets.chomp.downcase.strip.gsub(/[\s,']+/, '')
       if guess == "save"
@@ -233,5 +292,5 @@ player = Player.new
 computer = Computer.new
 hangman = Hangman.new(computer, player)
 player.set_instance(hangman)
-hangman.play_game
+hangman.mode_select
 
