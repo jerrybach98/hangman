@@ -1,39 +1,22 @@
 require 'json'
 
-# Psuedo
-# chose option to load or new 
-# take input of file name > pass file name to load method
-
-
-
-# defign a load method (file_name_input from chomp)
-# json.load file, file location game variiale = JSON.load_file('file_name_input from chomp.json')
-# variables accessible 
-# @Instance variable = variable['name'] or variable_name[0].instance_name
-# 
-
-
-
-# When starting game give player option to load a save game
-# 1 for new game, 2 for load
-# load json
-# Save game > loop back to: start a new game, end > add load game 
+# apply style guide
+# code review
 
 module Game
   def introduction
     puts 'Welcome to Hangman!'
     puts ' '
     puts 'The objective of Hangman is to guess a secret word by suggesting letters within a certain number of guesses.'
+    puts 'The player guessing the word may, at any time, attempt to guess the whole word.'
+    puts 'if the player makes enough incorrect guesses, the player loses.'
     puts ' '
     puts 'Example:'
     puts 'Word: hangman'
+    puts "Incorrect guesses remaining: 3"
     puts 'h a _ g m a _ Incorrect letters: e, d, b, c,'
     puts ' '
-    # Press 1 or 2 to play new game or save game
     puts 'Lets begin!'
-    puts 'ENTER [1] to start new game'
-    puts 'ENTER [2] to load game'
-    puts ' '
   end
 
   def play_again
@@ -51,7 +34,7 @@ module Game
         @blank_array = []
         @incorrect_array = []
         @filled_array = []
-        play_game
+        mode_select()
       end
     end
   end
@@ -78,6 +61,10 @@ class Hangman
   end
 
   def mode_select()
+    puts ' '
+    puts 'ENTER [1] to start new game'
+    puts 'ENTER [2] to load game'
+    puts ' '
     loop do 
       mode = gets.chomp
 
@@ -86,13 +73,7 @@ class Hangman
         play_game()
         break
       elsif mode == '2'
-        puts " "
-        puts "Saved files:"
-        Dir.children("./saved_games").each { |file| puts file.slice(0..-6)}
-        puts " "
-        puts "Enter the filename you would like to load:"
-        file_name = gets.chomp.strip
-        load_game(file_name)
+        load_game
         @loaded_game = true
         play_game()
         break
@@ -101,6 +82,27 @@ class Hangman
       end
     end
   end
+
+  def save_game
+    puts "Enter a filename for your saved game:"
+    file_name = gets.chomp.strip
+
+    Dir.mkdir('saved_games') unless Dir.exist?('saved_games')
+    File.open("./saved_games/#{file_name}.json", 'w') do |file|
+      file.puts(JSON.dump ({
+        :win => @win,
+        :match => @match,
+        :guesses_left => @guesses_left,
+        :word_array => @word_array,
+        :blank_array => @blank_array,
+        :incorrect_array => @incorrect_array,
+        :filled_array => @filled_array,
+      }))
+    end
+    puts "Game saved successfully"
+  end
+
+  private
 
   def play_game ()
     if @new_game == true
@@ -112,7 +114,7 @@ class Hangman
       puts "_____________________________________"
       puts "Game loaded:"
       puts "Incorrect guesses remaining: #{@guesses_left}"
-      puts "#{@filled_array} | Incorrect letters: #{@incorrect_array.join(' ')}"
+      puts "#{@blank_array.join(' ')} | Incorrect letters: #{@incorrect_array.join(' ')}"
       puts "_____________________________________"
       puts "Enter another guess or save game:"
       puts " "
@@ -146,45 +148,29 @@ class Hangman
 
   end
 
-
-  def save_game
-    puts "Enter a filename for your saved game:"
-    file_name = gets.chomp.strip
-
-    Dir.mkdir('saved_games') unless Dir.exist?('saved_games')
-    File.open("./saved_games/#{file_name}.json", 'w') do |file|
-      file.puts(JSON.dump ({
-        :win => @win,
-        :match => @match,
-        :guesses_left => @guesses_left,
-        :word_array => @word_array,
-        :blank_array => @blank_array,
-        :incorrect_array => @incorrect_array,
-        :filled_array => @filled_array,
-      }))
-    end
-    puts "Game saved successfully"
-  end
-
-  def load_game(file_name)
-    #add file name not found error
-    file_path = "./saved_games/#{file_name}.json"
-
-    if File.exist?(file_path)
-    json = JSON.load_file("./saved_games/#{file_name}.json")
-    @win = json['win']
-    @match = json['match']
-    @guesses_left = json['guesses_left']
-    @word_array = json['word_array']
-    @blank_array = json['blank_array']
-    @incorrect_array = json['incorrect_array']
-    @filled_array = json['filled_array']
-    else
-      puts "File not found: #{file_path}"
+  def load_game()
+    puts " "
+    puts "Saved files:"
+    Dir.children("./saved_games").each { |file| puts file.slice(0..-6)}
+    puts " "
+    puts "Enter the filename you would like to load:"
+    loop do
+      file_name = gets.chomp.strip
+      if File.exist?("./saved_games/#{file_name}.json")
+        json = JSON.load_file("./saved_games/#{file_name}.json")
+        @win = json['win']
+        @match = json['match']
+        @guesses_left = json['guesses_left']
+        @word_array = json['word_array']
+        @blank_array = json['blank_array']
+        @incorrect_array = json['incorrect_array']
+        @filled_array = json['filled_array']
+        break
+      else
+        puts "File not found, please enter the name of a saved file:"
+      end
     end
   end
-
-  #Private here, can add load game, play game?
 
   def convert_word (generate_word)
     @word_array = generate_word.split("")
@@ -272,7 +258,6 @@ class Player
   end
   
   def make_guess
-
     loop do
       guess = gets.chomp.downcase.strip.gsub(/[\s,']+/, '')
       if guess == "save"
@@ -294,3 +279,7 @@ hangman = Hangman.new(computer, player)
 player.set_instance(hangman)
 hangman.mode_select
 
+
+# File not found logic > move gets into load_game method?
+# loops back to new/load on game ending
+# private 
